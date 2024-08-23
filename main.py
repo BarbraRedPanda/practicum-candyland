@@ -4,14 +4,13 @@ import time
 import math
 
 pygame.init()
-movementMP3 = './sounds/movement.mp3'
 sounds = {
-    "movement": "./sounds/movement.mp3",
-    "victory": "./sounds/victory.mp3",
-    "button_main": "./sounds/button_main.mp3",
-    "button_deeper": "./sounds/button_deeper.mp3",
-    "spinning": "./sounds/spinning.mp3",
-    "bg_sound": "./sounds/bg_sound.mp3"
+    "movement": "./assets/sounds/movement.mp3",
+    "victory": "./assets/sounds/victory.mp3",
+    "button_main": "./assets/sounds/button_main.mp3",
+    "button_deeper": "./assets/sounds/button_deeper.mp3",
+    "spinning": "./assets/sounds/spinning.mp3",
+    "bg_sound": "./assets/sounds/bg_sound.mp3"
 }
 pygame.init()
 pygame.mixer.init()
@@ -19,19 +18,18 @@ pygame.mixer.init()
 
 screen = pygame.display.set_mode((800,600))
 
-bg = pygame.transform.scale(pygame.image.load('bg.png'), (800,600))
-#dice = pygame.transform.scale(pygame.image.load('bg.jpg'), (30,30))
+bg = pygame.transform.scale(pygame.image.load('.icons/bg.png'), (800,600))
 specialBG = pygame.transform.scale(pygame.image.load('specialBG.png'), (800,600))
 
-diceIcons = [pygame.transform.scale(pygame.image.load(f"./dice-icons/Dice0{n}.png"), (60,60)) for n in range(1,7)]
-trophy = pygame.transform.scale(pygame.image.load('trophy.png'), (150,300))
+diceIcons = [pygame.transform.scale(pygame.image.load(f"./assets/dice-icons/Dice0{n}.png"), (60,60)) for n in range(1,7)]
+trophy = pygame.transform.scale(pygame.image.load('./assets/icons/trophy.png'), (150,300))
 
 
 icons = {
-    "Lolipop": pygame.transform.scale(pygame.image.load("./icons/lolipop.png"), (30,30)),
-    "Mint": pygame.transform.scale(pygame.image.load('./icons/mint.png'), (30,30)),
-    "Cake": pygame.transform.scale(pygame.image.load('./icons/cake.png'), (30,30)),
-    "Goat": pygame.transform.scale(pygame.image.load('bg.jpg'), (30,30))
+    "Lolipop": pygame.transform.scale(pygame.image.load("./assets/icons/lolipop.png"), (30,30)),
+    "Mint": pygame.transform.scale(pygame.image.load('./assets/icons/mint.png'), (30,30)),
+    "Cake": pygame.transform.scale(pygame.image.load('./assets/icons/cake.png'), (30,30)),
+    "Goat": pygame.transform.scale(pygame.image.load('./assets/icons/bg.jpg'), (30,30))
 } 
 
 black = (0, 0, 0)
