@@ -281,7 +281,6 @@ def home_screen():
 def main_game(num_players, specialMode):
     pygame.mixer.Channel(1).play(pygame.mixer.Sound(sounds["bg_sound"]))
     players = [Player(list(icons.keys())[i]) for i in range(num_players)]
-
     turn = 0
     roll = 0
     latestEvent = ""
@@ -303,13 +302,14 @@ def main_game(num_players, specialMode):
                     roll = math.ceil(random.randint(1, 6)*player.multiplier)  # multiplies a random roll by a player's multiplier
                     newTile = player.currentTile + roll 
                     if (newTile+1) % 7 == 0 and specialMode:
-                        rand = random.randrange(-1,1)                       # either -1, 0, or 1
-                        player.multiplier = player.multiplier + rand*0.2    # changes the multiplier by -0.2, 0, or +0.2 
+                        rand = random.randrange(-1,1,2)                       # either -1 or 1
+                        player.multiplier = (player.multiplier*10 + 2*rand)/10    # changes the multiplier by -0.2 or +0.2 
                         player.move(newTile) # moves to new tile 
                         newTile = newTile+rand*10
-                        latestEvent = f"{player.iconKey}'s multiplier is now {player.multiplier}. On top of they roll, they moved {rand*10} spaces."  
+                        latestEvent = f"{player.iconKey}'s multiplier is now {player.multiplier}. They also teleport {random.randrange(-1,1,2)*10} spaces."  
                         time.sleep(0.4)       # waits 1 second to move it to the boosted tile
                     player.move(newTile) 
+                    latestEvent =""
                     turn = (turn+1) % len(players)        # changes turn to next player, loops back to player 0
 
         screen.blit(diceIcons[roll-1], dice_rect.topleft)
@@ -339,15 +339,19 @@ def main_game(num_players, specialMode):
 
 def winner(player):
     running = True
-    playSound("victory")
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-        screen.fill((128,128,128))
-        screen.blit(pygame.transform.scale(icons[player.iconKey], (100,100)), (400,100))
-        screen.blit(trophy, (350,300))
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    newGame()
+        playSound("victory")
+        screen.fill(bg_color)
+        screen.blit(font.render(f"{str(player.iconKey)} wins!", True, black), (250,100))
+        screen.blit(small_font.render("Press space to restart", True, black), (275,170))
+        screen.blit(pygame.transform.scale(icons[player.iconKey], (100,100)), (350,225))
+        screen.blit(trophy, (325,300))
 
         pygame.display.flip()
 
@@ -360,5 +364,9 @@ def playSound(sound):
     pygame.mixer.Channel(0).play(pygame.mixer.Sound(sounds[sound]))
 
 # Run the game
-num_players = home_screen()
-main_game(num_players[0], num_players[1])
+def newGame():
+    pygame.mixer.stop()
+    num_players = home_screen()
+    main_game(num_players[0], num_players[1])
+
+newGame()
