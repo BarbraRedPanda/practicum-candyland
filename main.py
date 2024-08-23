@@ -18,8 +18,8 @@ pygame.mixer.init()
 
 screen = pygame.display.set_mode((800,600))
 
-bg = pygame.transform.scale(pygame.image.load('.icons/bg.png'), (800,600))
-specialBG = pygame.transform.scale(pygame.image.load('specialBG.png'), (800,600))
+bg = pygame.transform.scale(pygame.image.load('./assets/icons/bg.png'), (800,600))
+specialBG = pygame.transform.scale(pygame.image.load('./assets/icons/specialBG.png'), (800,600))
 
 diceIcons = [pygame.transform.scale(pygame.image.load(f"./assets/dice-icons/Dice0{n}.png"), (60,60)) for n in range(1,7)]
 trophy = pygame.transform.scale(pygame.image.load('./assets/icons/trophy.png'), (150,300))
@@ -29,7 +29,7 @@ icons = {
     "Lolipop": pygame.transform.scale(pygame.image.load("./assets/icons/lolipop.png"), (30,30)),
     "Mint": pygame.transform.scale(pygame.image.load('./assets/icons/mint.png'), (30,30)),
     "Cake": pygame.transform.scale(pygame.image.load('./assets/icons/cake.png'), (30,30)),
-    "Goat": pygame.transform.scale(pygame.image.load('./assets/icons/bg.jpg'), (30,30))
+    "The Goat": pygame.transform.scale(pygame.image.load('./assets/icons/bg.jpg'), (30,30))
 } 
 
 black = (0, 0, 0)
@@ -281,7 +281,8 @@ def main_game(num_players, specialMode):
     players = [Player(list(icons.keys())[i]) for i in range(num_players)]
     turn = 0
     roll = 0
-    latestEvent = ""
+    latestEvent1 = ""
+    latestEvent2 = ""
 
     dice_rect = diceIcons[roll-1].get_rect(topleft=(730, 530))  
     running = True
@@ -304,10 +305,11 @@ def main_game(num_players, specialMode):
                         player.multiplier = (player.multiplier*10 + 2*rand)/10    # changes the multiplier by -0.2 or +0.2 
                         player.move(newTile) # moves to new tile 
                         newTile = newTile+rand*10
-                        latestEvent = f"{player.iconKey}'s multiplier is now {player.multiplier}. They also teleport {random.randrange(-1,1,2)*10} spaces."  
+                        latestEvent1 = f"{player.iconKey}'s multiplier is now {player.multiplier}."
+                        latestEvent2 = f"They also teleport {random.randrange(-1,1,2)*10} spaces."  
+                        text_start_time = pygame.time.get_ticks()
                         time.sleep(0.4)       # waits 1 second to move it to the boosted tile
                     player.move(newTile) 
-                    latestEvent =""
                     turn = (turn+1) % len(players)        # changes turn to next player, loops back to player 0
 
         screen.blit(diceIcons[roll-1], dice_rect.topleft)
@@ -315,20 +317,22 @@ def main_game(num_players, specialMode):
         # Changes background depending if it's special mode
         if specialMode: 
             screen.blit(specialBG, (0,0))
-            screen.blit(small_font.render(latestEvent, True, black), (20,300))
             screen.blit(small_font.render("Multipliers", True, black), (20,500))
             for i in range(len(players)):
                 screen.blit(small_font.render(f"{players[i].iconKey}: {players[i].multiplier}", True, black), (20, 520+(20*i)))
+            if latestEvent1 and pygame.time.get_ticks() - text_start_time < 3000:
+                screen.blit(small_font.render(latestEvent1, True, black), (180,15))  # renders info text for 3 sec
+                screen.blit(small_font.render(latestEvent2, True, black), (180,40))  
         else : screen.blit(bg, (0,0))
 
         # Draw all players
         for playera in players:
             playera.draw(screen)
 
-        if prevPlayer.currentTile != 0:
-            screen.blit(small_font.render(f"{str(prevPlayer.iconKey)} moved to {str(prevPlayer.currentTile+1)} ", True, black), (20, 15))
+        if prevPlayer.currentTile != 0 and player.currentTile != 0:
+            screen.blit(small_font.render(f"{str(prevPlayer.iconKey)} moved to {str(prevPlayer.currentTile+1)} ", True, black), (560, 15))
 
-        screen.blit(small_font.render(f"{str(player.iconKey)}\'s turn!", True, black), (600,15))
+        screen.blit(small_font.render(f"{str(player.iconKey)}\'s turn!", True, black), (20,15))
 
        # Update display
         pygame.display.flip()
@@ -364,6 +368,7 @@ def playSound(sound):
 # Run the game
 def newGame():
     pygame.mixer.stop()
+    pygame.mixer.init()
     num_players = home_screen()
     main_game(num_players[0], num_players[1])
 
