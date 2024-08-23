@@ -4,19 +4,47 @@ import time
 import math
 
 pygame.init()
+movementMP3 = './sounds/movement.mp3'
+sounds = {
+    "movement": "./sounds/movement.mp3",
+    "victory": "./sounds/victory.mp3",
+    "button_main": "./sounds/button_main.mp3",
+    "button_deeper": "./sounds/button_deeper.mp3",
+    "spinning": "./sounds/spinning.mp3",
+    "bg_sound": "./sounds/bg_sound.mp3"
+}
+pygame.init()
+pygame.mixer.init()
 
 
 screen = pygame.display.set_mode((800,600))
 
-bg_image = pygame.transform.scale(pygame.image.load('bg.png'), (800,600))
+bg = pygame.transform.scale(pygame.image.load('bg.png'), (800,600))
+#dice = pygame.transform.scale(pygame.image.load('bg.jpg'), (30,30))
+specialBG = pygame.transform.scale(pygame.image.load('specialBG.png'), (800,600))
+
+diceIcons = [pygame.transform.scale(pygame.image.load(f"./dice-icons/Dice0{n}.png"), (60,60)) for n in range(1,7)]
+trophy = pygame.transform.scale(pygame.image.load('trophy.png'), (150,300))
+
+
+icons = {
+    "Lolipop": pygame.transform.scale(pygame.image.load("./icons/lolipop.png"), (30,30)),
+    "Mint": pygame.transform.scale(pygame.image.load('./icons/mint.png'), (30,30)),
+    "Cake": pygame.transform.scale(pygame.image.load('./icons/cake.png'), (30,30)),
+    "Goat": pygame.transform.scale(pygame.image.load('bg.jpg'), (30,30))
+} 
 
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 blue = (0, 0, 255)
-green = (0, 255, 0)
+green = (148, 255, 33)
 yellow = (255, 255, 0)
+gray = (188, 194, 204)
+bg_color = (188, 206, 235)
 
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 36)
 
 tile_positions = [    
 (205, 536), 
@@ -156,53 +184,65 @@ tile_positions = [
 ]
 
 class Player:
-    def __init__(self, color):
-        self.color = color;
-        self.currentTile = 0;
+    def __init__(self, iconKey):
+        self.currentTile = 0
         self.rect = pygame.Rect(tile_positions[0], (15,15))
         self.multiplier = 1.0 # creates a move distance multiplier
+        self.iconKey = iconKey
+        
 
     def move(self, newTile):
         if newTile < 0: newTile = 0     # tile position must be greater than zero
-        if newTile > 150: # keeps the player in place if they don't get exactly to the finish 
+        if newTile > 133: # keeps the player in place if they don't get exactly to the finish 
             newTile = self.currentTile   
             print("You must get exactly to the finish!")
+        if newTile == 133:
+            winner(self)
+
+        playSound("movement")
         self.currentTile = newTile % len(tile_positions)
-        self.rect.center = tile_positions[self.currentTile]
+        self.rect.bottomright = tile_positions[self.currentTile]
 
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
+        screen.blit(icons[self.iconKey], self.rect)
 
 
 def home_screen():
-    font = pygame.font.Font(None, 74)
-    small_font = pygame.font.Font(None, 36)
+    
     players = 0
 
     specialMode = False
 
     while True:
-        screen.fill(white)
+        screen.fill(bg_color)
 
         title_text = font.render("Select Number of Players", True, black)
-        screen.blit(title_text, (100, 100))
+        screen.blit(title_text, (90, 100))
 
-        switch_rect = pygame.Rect(650, 500, 120, 40)  # Creates a special mode option
+        switch_rect = pygame.Rect(600, 500, 180, 40)  # Creates a special mode option
+
 
         # Display options for number of players
-        two_players_text = small_font.render("2 Players", True, red)
-        three_players_text = small_font.render("3 Players", True, blue)
-        four_players_text = small_font.render("4 Players", True, green)
+        two_players_text = small_font.render("2 Players", True, black)
+        three_players_text = small_font.render("3 Players", True, black)
+        four_players_text = small_font.render("4 Players", True, black)
 
-        screen.blit(two_players_text, (100, 300))
-        screen.blit(three_players_text, (300, 300))
-        screen.blit(four_players_text, (500, 300))
+        two_players_rect = pygame.Rect(120,300,130,35)
+        three_players_rect = pygame.Rect(320,300,130, 35)
+        four_players_rect = pygame.Rect(520,300,130,35)
+        pygame.draw.rect(screen, white, two_players_rect)
+        pygame.draw.rect(screen, white, three_players_rect)
+        pygame.draw.rect(screen, white, four_players_rect)
+
+        screen.blit(two_players_text, (two_players_rect.x+10, two_players_rect.y+5))
+        screen.blit(three_players_text, (three_players_rect.x+10, three_players_rect.y+5))
+        screen.blit(four_players_text, (four_players_rect.x+10, four_players_rect.y+5))
 
         # Sets switch color
-        switch_color = green if specialMode else yellow
+        switch_color = green if specialMode else gray
         pygame.draw.rect(screen, switch_color, switch_rect)
-        switch_text = small_font.render("Special", True, black)
+        switch_text = small_font.render("Special Mode", True, black)
         screen.blit(switch_text, (switch_rect.x + 10, switch_rect.y + 5))
 
 
@@ -224,53 +264,100 @@ def home_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if switch_rect.collidepoint(event.pos):
                     specialMode = not specialMode
+                    playSound("button_deeper")
+                elif two_players_rect.collidepoint(event.pos):
+                    players = 2
+                    playSound("button_main")
+                elif three_players_rect.collidepoint(event.pos):
+                    players = 3
+                    playSound("button_main")
+                elif four_players_rect.collidepoint(event.pos):
+                    players = 4
+                    playSound("button_main")
 
         if players:
             return players, specialMode
 
 def main_game(num_players, specialMode):
-    colors = [red, blue, green, yellow] 
-    players = [Player(colors[i]) for i in range(num_players)]
+    pygame.mixer.Channel(1).play(pygame.mixer.Sound(sounds["bg_sound"]))
+    players = [Player(list(icons.keys())[i]) for i in range(num_players)]
 
     turn = 0
+    roll = 0
+    latestEvent = ""
 
+    dice_rect = diceIcons[roll-1].get_rect(topleft=(730, 530))  
     running = True
+    while running:
+        screen.fill(bg_color)
+
+        player = players[turn]
+        prevPlayer = players[(turn+len(players)-1)%(len(players))]
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if dice_rect.collidepoint(event.pos):  # Check if the dice was clicked
+                    roll = math.ceil(random.randint(1, 6)*player.multiplier)  # multiplies a random roll by a player's multiplier
+                    newTile = player.currentTile + roll 
+                    if (newTile+1) % 7 == 0 and specialMode:
+                        rand = random.randrange(-1,1)                       # either -1, 0, or 1
+                        player.multiplier = player.multiplier + rand*0.2    # changes the multiplier by -0.2, 0, or +0.2 
+                        player.move(newTile) # moves to new tile 
+                        newTile = newTile+rand*10
+                        latestEvent = f"{player.iconKey}'s multiplier is now {player.multiplier}. On top of they roll, they moved {rand*10} spaces."  
+                        time.sleep(0.4)       # waits 1 second to move it to the boosted tile
+                    player.move(newTile) 
+                    turn = (turn+1) % len(players)        # changes turn to next player, loops back to player 0
+
+        screen.blit(diceIcons[roll-1], dice_rect.topleft)
+
+        # Changes background depending if it's special mode
+        if specialMode: 
+            screen.blit(specialBG, (0,0))
+            screen.blit(small_font.render(latestEvent, True, black), (20,300))
+            screen.blit(small_font.render("Multipliers", True, black), (20,500))
+            for i in range(len(players)):
+                screen.blit(small_font.render(f"{players[i].iconKey}: {players[i].multiplier}", True, black), (20, 520+(20*i)))
+        else : screen.blit(bg, (0,0))
+
+        # Draw all players
+        for playera in players:
+            playera.draw(screen)
+
+        if prevPlayer.currentTile != 0:
+            screen.blit(small_font.render(f"{str(prevPlayer.iconKey)} moved to {str(prevPlayer.currentTile+1)} ", True, black), (20, 15))
+
+        screen.blit(small_font.render(f"{str(player.iconKey)}\'s turn!", True, black), (600,15))
+
+       # Update display
+        pygame.display.flip()
+
+    pygame.quit()
+
+def winner(player):
+    running = True
+    playSound("victory")
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-            # Example movement for player 1
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE: 
-                    player = players[turn]
-                    roll = math.ceil(random.randint(1, 6)*player.multiplier)  # multiplies a random roll by a player's multiplier
-                    newTile = player.currentTile + roll 
-                    if newTile % 5 == 0 and specialMode:
-                        rand = random.randrange(-1,1)                       # either -1, 0, or 1
-                        player.multiplier = player.multiplier + rand*0.2    # changes the multiplier by -0.2, 0, or +0.2   
-                        player.move(newTile) # moves to new tile 
-                        newTile = newTile+rand*10
-                        time.sleep(1)       # waits 1 second to move it to the boosted tile
-                    player.move(newTile) 
-                    turn = (turn+1) % len(players)        # changes turn to next player, loops back to player 0
+        screen.fill((128,128,128))
+        screen.blit(pygame.transform.scale(icons[player.iconKey], (100,100)), (400,100))
+        screen.blit(trophy, (350,300))
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                print(str(pygame.mouse.get_pos()) + ", ")
-
-
-        screen.fill(white)
-
-        screen.blit(bg_image, (0,0))
-
-        # Draw all players
-        for player in players:
-            player.draw(screen)
-
-        # Update display
         pygame.display.flip()
 
     pygame.quit()
+
+# sound - key to sounds dictionary
+def playSound(sound):
+    #pygame.mixer.music.load(sounds[sound])
+    #pygame.mixer.music.play()
+    pygame.mixer.Channel(0).play(pygame.mixer.Sound(sounds[sound]))
 
 # Run the game
 num_players = home_screen()
